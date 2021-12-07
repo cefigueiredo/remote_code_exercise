@@ -23,6 +23,8 @@ On the Genserver, I also opted to update the users inside a concurrent Task to n
 
 ## Setup
 
+The app was built using `Elixir ~> 1.12.2`, `Erlang 24`.
+
   * Install dependencies with `mix deps.get`
   * Create and migrate your database with `mix ecto.setup`
   * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
