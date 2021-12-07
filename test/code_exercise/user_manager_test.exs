@@ -2,14 +2,15 @@ defmodule CodeExercise.UserManagerTest do
   use CodeExercise.DataCase
 
   alias CodeExercise.{Repo, User, UserManager}
+  alias CodeExercise.UserManager.State
 
   setup do
     dt = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
     user_entries =
       [
-        %{id: 1, points: 0, inserted_at: dt, updated_at: dt},
-        %{id: 2, points: 0, inserted_at: dt, updated_at: dt},
-        %{id: 3, points: 0, inserted_at: dt, updated_at: dt}
+        %{id: 1, points: 10, inserted_at: dt, updated_at: dt},
+        %{id: 2, points: 10, inserted_at: dt, updated_at: dt},
+        %{id: 3, points: 10, inserted_at: dt, updated_at: dt}
       ]
     {_, users} = Repo.insert_all(User, user_entries, returning: true)
 
@@ -32,12 +33,24 @@ defmodule CodeExercise.UserManagerTest do
       [%User{points: previous_points} = user | _] = users
 
       previous_state = %{max_number: 0, timestamp: NaiveDateTime.utc_now()}
-      {:ok, new_state} = UserManager.handle_info(:refresh, previous_state)
+      {:noreply, new_state} = UserManager.handle_info(:refresh, previous_state)
 
       user = Repo.reload(user)
 
       refute new_state.max_number == previous_state.max_number
       refute user.points == previous_points
+    end
+  end
+
+  describe "handle_call/3" do
+    test "fetches only 2 users that have the given points" do
+      previous_state = %State{max_number: 10}
+
+      {:reply, %{users: users, timestamp: timestamp}, state} =
+        UserManager.handle_call({:query, 10}, nil, previous_state)
+
+      assert Enum.count(users) == 2
+      refute is_nil(timestamp)
     end
   end
 end

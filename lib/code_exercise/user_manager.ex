@@ -30,17 +30,21 @@ defmodule CodeExercise.UserManager do
     batch_update_users(total_users())
     refresh_later()
 
-    {:ok, %State{max_number: new_points(), timestamp: state.timestamp}}
+    {:noreply, %State{max_number: new_points(), timestamp: state.timestamp}}
   end
 
   def handle_info(:refresh_later, state) do
     refresh_later()
 
-    {:ok, state}
+    {:noreply, state}
   end
 
   @impl true
-  def handle_call({:query, _number}, _, _state) do
+  def handle_call({:query, number}, _, state) do
+    users = Repo.all(from u in User, where: u.points == ^number, limit: 2)
+    state = Map.merge(state, %{timestamp: NaiveDateTime.utc_now()})
+
+    {:reply, %{users: users, timestamp: state.timestamp}, state}
   end
 
   defp new_points do
