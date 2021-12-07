@@ -5,8 +5,10 @@ defmodule CodeExerciseWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/api", CodeExerciseWeb do
+  scope "/", CodeExerciseWeb do
     pipe_through :api
+
+    get "/", UserController, :index
   end
 
   # Enables LiveDashboard only for development
@@ -19,21 +21,9 @@ defmodule CodeExerciseWeb.Router do
   if Mix.env() in [:dev, :test] do
     import Phoenix.LiveDashboard.Router
 
-    scope "/" do
+    scope "/telemetry" do
       pipe_through [:fetch_session, :protect_from_forgery]
       live_dashboard "/dashboard", metrics: CodeExerciseWeb.Telemetry
-    end
-  end
-
-  # Enables the Swoosh mailbox preview in development.
-  #
-  # Note that preview only shows emails that were sent by the same
-  # node running the Phoenix server.
-  if Mix.env() == :dev do
-    scope "/dev" do
-      pipe_through [:fetch_session, :protect_from_forgery]
-
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end
 end
