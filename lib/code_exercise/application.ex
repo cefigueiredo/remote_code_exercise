@@ -15,9 +15,10 @@ defmodule CodeExercise.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: CodeExercise.PubSub},
       # Start the Endpoint (http/https)
-      CodeExerciseWeb.Endpoint
+      CodeExerciseWeb.Endpoint,
       # Start a worker by calling: CodeExercise.Worker.start_link(arg)
       # {CodeExercise.Worker, arg}
+      CodeExercise.UserManager
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

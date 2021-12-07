@@ -20,14 +20,14 @@ defmodule CodeExercise.UserManager do
 
   @impl true
   def init(_state) do
-    send self(), :refresh_later
+    send(self(), :refresh_later)
 
     {:ok, %State{max_number: new_points()}}
   end
 
   @impl true
   def handle_info(:refresh, state) do
-    batch_update_users(total_users())
+    Task.start(fn -> batch_update_users(total_users()) end)
     refresh_later()
 
     {:noreply, %State{max_number: new_points(), timestamp: state.timestamp}}
@@ -40,8 +40,8 @@ defmodule CodeExercise.UserManager do
   end
 
   @impl true
-  def handle_call({:query, number}, _, state) do
-    users = Repo.all(from u in User, where: u.points == ^number, limit: 2)
+  def handle_call(:query, _, state) do
+    users = Repo.all(from u in User, where: u.points == ^state.max_number, limit: 2)
     state = Map.merge(state, %{timestamp: NaiveDateTime.utc_now()})
 
     {:reply, %{users: users, timestamp: state.timestamp}, state}
@@ -58,9 +58,12 @@ defmodule CodeExercise.UserManager do
     |> Stream.chunk_every(10_000)
     |> Stream.map(fn chunk ->
       dt = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
-      entries = Enum.map(chunk, &(%{id: &1, points: new_points(), inserted_at: dt, updated_at: dt}))
+      entries = Enum.map(chunk, &%{id: &1, points: new_points(), inserted_at: dt, updated_at: dt})
 
-      Repo.insert_all(User, entries, conflict_target: [:id], on_conflict: {:replace_all_except, [:id, :inserted_at]})
+      Repo.insert_all(User, entries,
+        conflict_target: [:id],
+        on_conflict: {:replace_all_except, [:id, :inserted_at]}
+      )
     end)
     |> Enum.count()
   end

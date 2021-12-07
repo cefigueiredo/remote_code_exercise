@@ -6,12 +6,13 @@ defmodule CodeExercise.UserManagerTest do
 
   setup do
     dt = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
-    user_entries =
-      [
-        %{id: 1, points: 10, inserted_at: dt, updated_at: dt},
-        %{id: 2, points: 10, inserted_at: dt, updated_at: dt},
-        %{id: 3, points: 10, inserted_at: dt, updated_at: dt}
-      ]
+
+    user_entries = [
+      %{id: 1, points: 10, inserted_at: dt, updated_at: dt},
+      %{id: 2, points: 10, inserted_at: dt, updated_at: dt},
+      %{id: 3, points: 10, inserted_at: dt, updated_at: dt}
+    ]
+
     {_, users} = Repo.insert_all(User, user_entries, returning: true)
 
     {:ok, users: users}
